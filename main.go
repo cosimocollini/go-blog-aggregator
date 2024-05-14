@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/cosimocollini/go-blog-aggregator/internal/database"
 	"github.com/joho/godotenv"
@@ -18,15 +17,9 @@ type apiConfig struct {
 func main() {
 	godotenv.Load(".env")
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("PORT environment variable is not set")
-	}
+	port := getEnv("PORT")
 
-	connString := os.Getenv("CONNECTION_STRING")
-	if connString == "" {
-		log.Fatal("CONNECTION_STRING environment variable is not set")
-	}
+	connString := getEnv("CONNECTION_STRING")
 
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
@@ -43,6 +36,7 @@ func main() {
 	mux.HandleFunc("GET /v1/err", handlerErr)
 
 	mux.HandleFunc("POST /v1/users", apiCfg.handlerCreateUser)
+	mux.HandleFunc("GET /v1/users", apiCfg.handlerUsersGet)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
