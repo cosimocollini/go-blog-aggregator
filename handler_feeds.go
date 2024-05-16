@@ -38,5 +38,15 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, feed)
+	respondWithJSON(w, http.StatusOK, databaseFeedToFeed(feed))
+}
+
+func (cfg *apiConfig) handlerGetAllFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, err := cfg.DB.GetAllFeeds(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, databaseFeedsToFeeds(feeds))
 }
