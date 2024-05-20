@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,11 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Name string
 	}
-
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
@@ -22,15 +22,14 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	newUser := database.CreateUserParams{
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		Name:      params.Name,
-	}
-
-	user, err := cfg.DB.CreateUser(r.Context(), newUser)
+	})
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
 		return
 	}
@@ -38,7 +37,6 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
 
-func (cfg *apiConfig) handlerUsersGet(w http.ResponseWriter, r *http.Request, u database.User) {
-
-	respondWithJSON(w, http.StatusOK, databaseUserToUser(u))
+func (cfg *apiConfig) handlerUsersGet(w http.ResponseWriter, r *http.Request, user database.User) {
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
